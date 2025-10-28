@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Говорящий Кот</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .coins {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .coin-icon {
+            width: 30px;
+            height: 30px;
+            background: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stats-container {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .stat {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-bar {
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .hunger-fill { background: linear-gradient(90deg, #ff6b6b, #ff8787); }
+        .happiness-fill { background: linear-gradient(90deg, #ffd93d, #ffed4e); }
+        .energy-fill { background: linear-gradient(90deg, #6bcf7f, #95e1a3); }
+
+        .pet-container {
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+            position: relative;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pet {
+            font-size: 150px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            user-select: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pet:hover {
+            transform: scale(1.1);
+        }
+
+        .pet.animate {
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        .pet.sleeping {
+            animation: sleep 2s ease-in-out infinite;
+        }
+
+        @keyframes sleep {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 80%;
+            z-index: 1;
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+        }
+
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .action-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .shop {
+            padding: 20px;
+            background: #fff;
+            border-top: 3px solid #f093fb;
+        }
+
+        .shop-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .shop-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .shop-item:hover {
+            border-color: #f093fb;
+            transform: scale(1.05);
+        }
+
+        .shop-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .item-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: float-up 1s ease-out forwards;
+            z-index: 10;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🐱 Мой Говорящий Кот</h1>
+            <div class="coins">
+                <div class="coin-icon">💰</div>
+                <span id="coinDisplay">0</span>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-label">
+                    <span>🍖 Голод</span>
+                    <span id="hungerValue">100</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill hunger-fill" id="hungerBar" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">
+                    <span>😊 Счастье</span>
+                    <span id="happinessValue">100</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill happiness-fill" id="happinessBar" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">
+                    <span>⚡ Энергия</span>
+                    <span id="energyValue">100</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill energy-fill" id="energyBar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pet-container" id="petContainer">
+            <div class="speech-bubble" id="speechBubble"></div>
+            <div class="pet" id="pet">🐱</div>
+        </div>
+
+        <div class="actions">
+            <button class="action-btn" id="feedBtn" title="Покормить">🍖</button>
+            <button class="action-btn" id="playBtn" title="Играть">🎾</button>
+            <button class="action-btn" id="sleepBtn" title="Спать">😴</button>
+        </div>
+
+        <div class="shop">
+            <div class="shop-title">🛒 Магазин еды</div>
+            <div class="shop-items">
+                <div class="shop-item" data-food="fish" data-hunger="20" data-price="10">
+                    <div class="item-icon">🐟</div>
+                    <div class="item-name">Рыбка</div>
+                    <div class="item-price">💰 10</div>
+                </div>
+                <div class="shop-item" data-food="meat" data-hunger="30" data-price="15">
+                    <div class="item-icon">🥩</div>
+                    <div class="item-name">Мясо</div>
+                    <div class="item-price">💰 15</div>
+                </div>
+                <div class="shop-item" data-food="milk" data-hunger="15" data-price="8">
+                    <div class="item-icon">🥛</div>
+                    <div class="item-name">Молоко</div>
+                    <div class="item-price">💰 8</div>
+                </div>
+                <div class="shop-item" data-food="cake" data-hunger="40" data-price="25">
+                    <div class="item-icon">🎂</div>
+                    <div class="item-name">Торт</div>
+                    <div class="item-price">💰 25</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">🔄 Сбросить прогресс</button>
+    </div>
+
+    <script>
+        class TalkingCat {
+            constructor() {
+                this.hunger = 100;
+                this.happiness = 100;
+                this.energy = 100;
+                this.coins = 50;
+                this.lastUpdate = Date.now();
+                this.isSleeping = false;
+                
+                this.init();
+            }
+
+            async init() {
+                await this.loadGame();
+                this.setupEventListeners();
+                this.startGameLoop();
+                this.updateUI();
+            }
+
+            async loadGame() {
+                try {
+                    const result = await window.storage.get('catGame');
+                    if (result && result.value) {
+                        const data = JSON.parse(result.value);
+                        this.hunger = data.hunger;
+                        this.happiness = data.happiness;
+                        this.energy = data.energy;
+                        this.coins = data.coins;
+                        this.lastUpdate = data.lastUpdate;
+                        
+                        // Обновляем статы за время отсутствия
+                        const timePassed = (Date.now() - this.lastUpdate) / 1000;
+                        this.hunger = Math.max(0, this.hunger - timePassed * 0.5);
+                        this.happiness = Math.max(0, this.happiness - timePassed * 0.3);
+                        this.energy = Math.min(100, this.energy + timePassed * 0.2);
+                    }
+                } catch (error) {
+                    console.log('Начинаем новую игру');
+                }
+            }
+
+            async saveGame() {
+                const data = {
+                    hunger: this.hunger,
+                    happiness: this.happiness,
+                    energy: this.energy,
+                    coins: this.coins,
+                    lastUpdate: Date.now()
+                };
+                
+                try {
+                    await window.storage.set('catGame', JSON.stringify(data));
+                } catch (error) {
+                    console.error('Ошибка сохранения:', error);
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('pet').addEventListener('click', () => this.petCat());
+                document.getElementById('feedBtn').addEventListener('click', () => this.feedBasic());
+                document.getElementById('playBtn').addEventListener('click', () => this.play());
+                document.getElementById('sleepBtn').addEventListener('click', () => this.sleep());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+
+                document.querySelectorAll('.shop-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const hunger = parseInt(item.dataset.hunger);
+                        const price = parseInt(item.dataset.price);
+                        const food = item.dataset.food;
+                        this.buyFood(hunger, price, food);
+                    });
+                });
+            }
+
+            petCat() {
+                const pet = document.getElementById('pet');
+                pet.classList.add('animate');
+                setTimeout(() => pet.classList.remove('animate'), 500);
+
+                this.happiness = Math.min(100, this.happiness + 5);
+                this.showSpeech(['Мяу! 😸', 'Мур-мур! 💕', 'Приятно! 🥰'][Math.floor(Math.random() * 3)]);
+                this.showFloatingText('+5 😊', pet);
+                this.updateUI();
+                this.saveGame();
+            }
+
+            feedBasic() {
+                if (this.coins < 5) {
+                    this.showSpeech('Недостаточно монет! 😿');
+                    return;
+                }
+
+                this.coins -= 5;
+                this.hunger = Math.min(100, this.hunger + 15);
+                this.showSpeech('Вкусно! 😋');
+                
+                const btn = document.getElementById('feedBtn');
+                this.showFloatingText('-5 💰', btn);
+                this.showFloatingText('+15 🍖', btn);
+                
+                this.updateUI();
+                this.saveGame();
+            }
+
+            buyFood(hungerRestore, price, food) {
+                if (this.coins < price) {
+                    this.showSpeech('Недостаточно монет! 😿');
+                    return;
+                }
+
+                this.coins -= price;
+                this.hunger = Math.min(100, this.hunger + hungerRestore);
+                this.happiness = Math.min(100, this.happiness + 10);
+                
+                const messages = {
+                    fish: 'Рыбка - мой любимчик! 😻',
+                    meat: 'Ммм, мясо! 🤤',
+                    milk: 'Молочко! 😺',
+                    cake: 'Торт! Ура! 🎉'
+                };
+                
+                this.showSpeech(messages[food] || 'Спасибо! 😊');
+                
+                const pet = document.getElementById('pet');
+                this.showFloatingText(`-${price} 💰`, pet);
+                this.showFloatingText(`+${hungerRestore} 🍖`, pet);
+                
+                this.updateUI();
+                this.saveGame();
+            }
+
+            play() {
+                if (this.energy < 20) {
+                    this.showSpeech('Я устал... 😴');
+                    return;
+                }
+
+                this.energy -= 20;
+                this.happiness = Math.min(100, this.happiness + 30);
+                this.hunger = Math.max(0, this.hunger - 10);
+                this.coins += 5;
+
+                const pet = document.getElementById('pet');
+                pet.classList.add('animate');
+                setTimeout(() => pet.classList.remove('animate'), 500);
+
+                this.showSpeech('Весело! 🎉');
+                this.showFloatingText('+30 😊', pet);
+                this.showFloatingText('+5 💰', pet);
+
+                this.updateUI();
+                this.saveGame();
+            }
+
+            sleep() {
+                if (this.isSleeping) {
+                    this.showSpeech('Я уже сплю! 💤');
+                    return;
+                }
+
+                this.isSleeping = true;
+                const pet = document.getElementById('pet');
+                pet.classList.add('sleeping');
+                pet.textContent = '😴';
+                
+                this.showSpeech('Спокойной ночи... 💤');
+
+                setTimeout(() => {
+                    this.isSleeping = false;
+                    pet.classList.remove('sleeping');
+                    pet.textContent = '🐱';
+                    this.energy = 100;
+                    this.showSpeech('Я выспался! 😸');
+                    this.updateUI();
+                    this.saveGame();
+                }, 5000);
+            }
+
+            startGameLoop() {
+                setInterval(() => {
+                    if (!this.isSleeping) {
+                        this.hunger = Math.max(0, this.hunger - 0.5);
+                        this.happiness = Math.max(0, this.happiness - 0.3);
+                        this.energy = Math.min(100, this.energy + 0.1);
+                        
+                        if (this.hunger < 20 && Math.random() > 0.7) {
+                            this.showSpeech('Я голоден! 😿');
+                        }
+                        
+                        if (this.happiness < 20 && Math.random() > 0.7) {
+                            this.showSpeech('Мне скучно... 😔');
+                        }
+
+                        this.updateUI();
+                    }
+                }, 2000);
+
+                setInterval(() => {
+                    this.saveGame();
+                }, 10000);
+            }
+
+            updateUI() {
+                document.getElementById('hungerValue').textContent = Math.round(this.hunger);
+                document.getElementById('happinessValue').textContent = Math.round(this.happiness);
+                document.getElementById('energyValue').textContent = Math.round(this.energy);
+                document.getElementById('coinDisplay').textContent = this.coins;
+
+                document.getElementById('hungerBar').style.width = this.hunger + '%';
+                document.getElementById('happinessBar').style.width = this.happiness + '%';
+                document.getElementById('energyBar').style.width = this.energy + '%';
+
+                // Обновляем доступность кнопок
+                document.querySelectorAll('.shop-item').forEach(item => {
+                    const price = parseInt(item.dataset.price);
+                    if (this.coins < price) {
+                        item.classList.add('disabled');
+                    } else {
+                        item.classList.remove('disabled');
+                    }
+                });
+
+                document.getElementById('feedBtn').classList.toggle('disabled', this.coins < 5);
+                document.getElementById('playBtn').classList.toggle('disabled', this.energy < 20);
+            }
+
+            showSpeech(text) {
+                const bubble = document.getElementById('speechBubble');
+                bubble.textContent = text;
+                bubble.classList.add('show');
+                
+                setTimeout(() => {
+                    bubble.classList.remove('show');
+                }, 2500);
+            }
+
+            showFloatingText(text, element) {
+                const floating = document.createElement('div');
+                floating.className = 'floating-text';
+                floating.textContent = text;
+                
+                const rect = element.getBoundingClientRect();
+                const container = document.getElementById('petContainer');
+                const containerRect = container.getBoundingClientRect();
+                
+                floating.style.left = (rect.left - containerRect.left + rect.width / 2) + 'px';
+                floating.style.top = (rect.top - containerRect.top) + 'px';
+                
+                container.appendChild(floating);
+                
+                setTimeout(() => {
+                    floating.remove();
+                }, 1000);
+            }
+
+            async resetGame() {
+                if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
+                    try {
+                        await window.storage.delete('catGame');
+                    } catch (error) {
+                        console.log('Нет данных для удаления');
+                    }
+                    location.reload();
+                }
+            }
+        }
+
+        // Запуск игры
+        const game = new TalkingCat();
+    </script>
+</body>
+</html>
